@@ -49,7 +49,6 @@ def replacement(board,choice):
     board[choice] = replace.upper()
     return board
 
-
 #: Write a function to check for a winning condition
 def check_winning(board):
     for i in range(1,8,3):
