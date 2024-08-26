@@ -3,6 +3,7 @@ suits = ('Hearts', 'Diamonds', 'Spades', 'Clubs')
 ranks = ('Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten', 'Jack', 'Queen', 'King', 'Ace')
 values = {'Two':2, 'Three':3, 'Four':4, 'Five':5, 'Six':6, 'Seven':7, 'Eight':8, 
             'Nine':9, 'Ten':10, 'Jack':10, 'Queen':10, 'King':10, 'Ace':11}
+at_table = True
 #define wether we are letting the player hit. false upon standing
 game_on = True
 #player hitting, starts out true
@@ -155,7 +156,8 @@ def digit_check(min,max,requestedNum):
 #TODO Write a function for taking bets
 def take_bet(player,dealer):
 
-    bet = digit_check(0,player.balance,'Bet')
+    bet = digit_check(5,player.balance,'Bet')
+    player.remove(bet)
     dealer.add(bet)
     
 #Write a function for taking hits
@@ -216,11 +218,13 @@ def show_some(player,dealer):
 #check after each hit
 def player_busts(player,dealer):
     global game_on
+    global hitting
     player.adjust_for_aces()
     if player.value > 21:
-        print('Player Busts!')
+        print('Player Busts function executed')
         dealer.balance = 0
         game_on = False
+        hitting = False
         return True
     else:
         return False
@@ -261,7 +265,6 @@ def dealer_wins(player,dealer):
     if dealer.value == 21 and player.value != 21:
         print('Dealer Wins!')
         dealer.balance = 0
-        dealear_hitting = False
         return True
     elif player.value < dealer.value:
         print('Dealer wins!')
@@ -270,36 +273,61 @@ def dealer_wins(player,dealer):
     else:
         return False
     
-def push():
-    print('Dealer and player tie')
+def push(player,dealer):
+    if player.value == dealer.value:
+        print('Dealer and player tie push function')
+        player.add(dealer.balance)
+        dealer.balance = 0
+        return True
+    else:
+        return False
 
+def game_on_choice():
+    choice = 'Wrong'
+    while choice.lower() not in ['y','n']:
+        choice = input('Keep Playing? (Y,N): ')
+
+        if choice.lower() not in ['y','n']:
+            print('sorry, invalid choice!')
+
+    if choice.lower() == 'y':
+        return True
+    else:
+        return False
 #Game Setup
-#TODO Create the deck
-new_deck = Deck()
 
-#TODO Shuffle the Deck
-new_deck.shuffle()
-
-#TODO Create the Player
+# Create the Player
 player_name = input('Please enter your name: ')
 human = Player(player_name)
 
-#TODO Create the computer
+# Create the computer
 computer = Dealer()
-
-#Game Logic: Two possible actions, hit or stay.
+# Create the deck
 print(f'Welcome to blackjack {human.name}! You are starting with {human.balance}')
 print(f'Your goal is to get as much money from the house as possible by beating the {computer.name}!')
 print("Let's Play!")
 
-game_on = True
-while game_on:
+while at_table:
+    player_bust = False
+    dealer_bust = False
+    computer.value = 0
+    human.value = 0
+    hitting = True
+    new_deck = Deck()
 
-    #Set up initial hand, deal 2 cards to each player
+    #TODO Shuffle the Deck
+    new_deck.shuffle()
+
+    #Game Logic: Two possible actions, hit or stay.
+    human.cards_in_play = []
+    computer.cards_in_play = []
     for num in range(2):
         human.add_cards(new_deck.deal_one())
         computer.add_cards(new_deck.deal_one())
+
+
     
+        
     show_some(human,computer)
     take_bet(human,computer)
     
@@ -309,13 +337,31 @@ while game_on:
         show_some(human,computer)
         player_bust = player_busts(human,computer)
 
-    while dealear_hitting and not dealer_bust:
-        print('\n')
-        while dealear_hitting:
-            hit(computer,new_deck)
+    while computer.value < 17 and not dealer_bust and not player_bust:
+        hit(computer,new_deck)
+        show_all(human,computer)
 
+    if player_busts(human,computer):
+        print("dealer wins by bust")
+    elif dealer_busts(human,computer):
+        print('player wins by bust')
+    elif push(human,computer):
+        print('push?')
+    elif player_wins(human,computer):
+        print('player wins by val')
+    elif dealer_wins(human,computer):
+        print('dealer wins by val')
+    else:
+        print('I got confused')
+        
     
-    break
+    show_all(human,computer)
+    if human.balance < 5:
+        print('you are out of money!')
+        at_table = False
+    else:
+        at_table = game_on_choice()
+
 
 #game ending: Player busts: player stays, computer wins: player stays, computer busts
 #face cards are ten.
