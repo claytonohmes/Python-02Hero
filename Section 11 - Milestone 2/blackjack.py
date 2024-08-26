@@ -7,6 +7,8 @@ values = {'Two':2, 'Three':3, 'Four':4, 'Five':5, 'Six':6, 'Seven':7, 'Eight':8,
 game_on = True
 #player hitting, starts out true
 hitting = True
+#Dealer hitting
+dealear_hitting = True
 #false until the player busts
 player_bust = False
 #False until the dealer busts
@@ -92,7 +94,7 @@ class Player(Chips):
 class Dealer(Chips):
         
         def __init__(self):
-            self.name = 'Dealer'
+            self.name = 'House'
             Chips.__init__(self,self.name,0)
             self.cards_in_play = []
             self.value = 0
@@ -178,7 +180,6 @@ def hit_or_stand(player,deck):
                 print('Sorry, please try again.')
                 continue
             break
-    
 
 #Write a function to show all cards
 def show_all(player,dealer):
@@ -210,15 +211,16 @@ def show_some(player,dealer):
     print("Bicycle"," | ",dealer.cards_in_play[1])
     print(f"{player.name}'s Hand: ")
     print(player,f'Value: {pvalue}')
-    
 
 #Write functions to handle end game scenarios
 #check after each hit
 def player_busts(player,dealer):
+    global game_on
     player.adjust_for_aces()
     if player.value > 21:
         print('Player Busts!')
         dealer.balance = 0
+        game_on = False
         return True
     else:
         return False
@@ -241,21 +243,25 @@ def player_wins(player,dealer):
         return False
 
 def dealer_busts(player,dealer):
+    global dealear_hitting
     dealer.adjust_for_aces()
     if dealer.value > 21:
         player.add(dealer.payout())
         dealer.balance = 0
+        dealear_hitting = False
         return True
     else:
         return False
     
 def dealer_wins(player,dealer):
+    global dealear_hitting
     player.adjust_for_aces()
     dealer.adjust_for_aces()
 
     if dealer.value == 21 and player.value != 21:
         print('Dealer Wins!')
         dealer.balance = 0
+        dealear_hitting = False
         return True
     elif player.value < dealer.value:
         print('Dealer wins!')
@@ -295,12 +301,18 @@ while game_on:
         computer.add_cards(new_deck.deal_one())
     
     show_some(human,computer)
+    take_bet(human,computer)
     
     while hitting and not player_bust:
         print('\n')
         hit_or_stand(human,new_deck)
         show_some(human,computer)
         player_bust = player_busts(human,computer)
+
+    while dealear_hitting and not dealer_bust:
+        print('\n')
+        while dealear_hitting:
+            hit(computer,new_deck)
 
     
     break
