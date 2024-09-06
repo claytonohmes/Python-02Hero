@@ -3,9 +3,8 @@ suits = ('Hearts', 'Diamonds', 'Spades', 'Clubs')
 ranks = ('Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten', 'Jack', 'Queen', 'King', 'Ace')
 values = {'Two':2, 'Three':3, 'Four':4, 'Five':5, 'Six':6, 'Seven':7, 'Eight':8, 
             'Nine':9, 'Ten':10, 'Jack':10, 'Queen':10, 'King':10, 'Ace':11}
+
 at_table = True
-#define wether we are letting the player hit. false upon standing
-game_on = True
 #player hitting, starts out true
 hitting = True
 #Dealer hitting
@@ -153,7 +152,7 @@ def digit_check(min,max,requestedNum):
     
     return int(choice)
 
-#TODO Write a function for taking bets
+#Write a function for taking bets
 def take_bet(player,dealer):
 
     bet = digit_check(5,player.balance,'Bet')
@@ -166,7 +165,7 @@ def hit(player,deck):
     player.add_cards(deck.deal_one())
     player.adjust_for_aces()
 
-#TODO write a function to allow the player to hit or stand
+#write a function to allow the player to hit or stand
 def hit_or_stand(player,deck):
     global hitting
 
@@ -214,16 +213,12 @@ def show_some(player,dealer):
     print(f"{player.name}'s Hand: ")
     print(player,f'Value: {pvalue}')
 
-#Write functions to handle end game scenarios
-#check after each hit
 def player_busts(player,dealer):
-    global game_on
     global hitting
     player.adjust_for_aces()
     if player.value > 21:
         print('Player Busts function executed')
         dealer.balance = 0
-        game_on = False
         hitting = False
         return True
     else:
@@ -283,6 +278,9 @@ def push(player,dealer):
         return False
 
 def game_on_choice():
+    '''
+    Choice for the user to keep on playing. Used to assign a condition for a while loop.
+    '''
     choice = 'Wrong'
     while choice.lower() not in ['y','n']:
         choice = input('Keep Playing? (Y,N): ')
@@ -294,28 +292,29 @@ def game_on_choice():
         return True
     else:
         return False
-#Game Setup
 
+#Game Setup
 # Create the Player
 player_name = input('Please enter your name: ')
 human = Player(player_name)
-
 # Create the computer
 computer = Dealer()
-# Create the deck
+#Opening Message
 print(f'Welcome to blackjack {human.name}! You are starting with {human.balance}')
 print(f'Your goal is to get as much money from the house as possible by beating the {computer.name}!')
 print("Let's Play!")
 
+#Use the at table variable to determine if the player will remain seated at the table and continue play.
 while at_table:
     player_bust = False
     dealer_bust = False
     computer.value = 0
     human.value = 0
     hitting = True
+    # Create the deck
     new_deck = Deck()
 
-    #TODO Shuffle the Deck
+    #Shuffle the Deck
     new_deck.shuffle()
 
     #Game Logic: Two possible actions, hit or stay.
@@ -324,19 +323,19 @@ while at_table:
     for num in range(2):
         human.add_cards(new_deck.deal_one())
         computer.add_cards(new_deck.deal_one())
-
-
-    
         
     show_some(human,computer)
     take_bet(human,computer)
     
+    #the players turn until they bust or stand.
     while hitting and not player_bust:
         print('\n')
         hit_or_stand(human,new_deck)
+        print('\n')
         show_some(human,computer)
         player_bust = player_busts(human,computer)
 
+    #the dealer hits until they hit a value of 17, they bust and only if the player has not busted.
     while computer.value < 17 and not dealer_bust and not player_bust:
         hit(computer,new_deck)
         show_all(human,computer)
@@ -354,19 +353,13 @@ while at_table:
     else:
         print('I got confused')
         
-    
+    #Show the final results
     show_all(human,computer)
+
+    #check the players balance, if the player has more than the minimum bet, allow them to play again.
     if human.balance < 5:
         print('you are out of money!')
         at_table = False
     else:
         at_table = game_on_choice()
 
-
-#game ending: Player busts: player stays, computer wins: player stays, computer busts
-#face cards are ten.
-#ace is one or eleven.
-
-
-#test take bet
-#take_bet(Human,computer)
